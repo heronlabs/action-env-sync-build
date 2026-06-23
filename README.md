@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0                      # full history is required
           token: ${{ secrets.SYNC_TOKEN }}    # same token used to push to targets
 
-      - uses: heronlabs/action-env-sync@v1
+      - uses: heronlabs/action-env-sync-build@v1
         with:
           target-branches: |
             staging

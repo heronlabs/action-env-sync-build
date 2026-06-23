@@ -1,6 +1,6 @@
 # Environment Sync Action
 
-[![CI](https://github.com/heronlabs/action-env-sync-build/actions/workflows/ci.yml/badge.svg)](https://github.com/heronlabs/action-env-sync-build/actions/workflows/ci.yml)
+[![CI](https://github.com/heronlabs/action-env-sync-build/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/heronlabs/action-env-sync-build/actions/workflows/continuous-integration.yml)
 
 > Fan a source branch out into long-lived environment branches — push if clean, open a PR if it conflicts.
 

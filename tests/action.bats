@@ -7,7 +7,7 @@
 
 setup() {
   SCRIPT="$BATS_TEST_DIRNAME/../core/sync-branches.sh"
-  STUB_DIR="$BATS_TEST_DIRNAME"   # contains the `gh` stub
+  STUB_DIR="$BATS_TEST_DIRNAME/__mocks__"   # contains the `gh` stub
 }
 
 git_q() { git -C "$1" "${@:2}" >/dev/null 2>&1; }

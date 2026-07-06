@@ -1,7 +1,7 @@
 .PHONY: test lint
 
 test:
-	bats test/
+	bats tests/
 
 lint:
-	shellcheck core/*.sh test/*.bats test/gh
+	shellcheck core/*.sh tests/*.bats tests/__mocks__/*

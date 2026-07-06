@@ -116,7 +116,7 @@ for target in "${targets[@]}"; do
     if git merge-base --is-ancestor "origin/${source_branch}" "origin/${target}" 2>/dev/null; then
       echo "result: $target already"; continue
     fi
-    git push --quiet origin "${commit}:refs/heads/${target}" 2>/dev/null && push_ok=1 || push_ok=0
+    if git push --quiet origin "${commit}:refs/heads/${target}" 2>/dev/null; then push_ok=1; else push_ok=0; fi
   fi
 
   if [ "$push_ok" -eq 1 ]; then

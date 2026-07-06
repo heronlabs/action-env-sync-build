@@ -91,8 +91,7 @@ for target in "${targets[@]}"; do
   fi
 
   # Side-effect-free merge probe.
-  tree="$(git merge-tree --write-tree "origin/${target}" "origin/${source_branch}" 2>/dev/null)" \
-    && mt_rc=0 || mt_rc=$?
+  if tree="$(git merge-tree --write-tree "origin/${target}" "origin/${source_branch}" 2>/dev/null)"; then mt_rc=0; else mt_rc=$?; fi
 
   if [ "$mt_rc" -ne 0 ]; then
     # Conflict -> PR path.
@@ -116,7 +115,7 @@ for target in "${targets[@]}"; do
     if git merge-base --is-ancestor "origin/${source_branch}" "origin/${target}" 2>/dev/null; then
       echo "result: $target already"; continue
     fi
-    git push --quiet origin "${commit}:refs/heads/${target}" 2>/dev/null && push_ok=1 || push_ok=0
+    if git push --quiet origin "${commit}:refs/heads/${target}" 2>/dev/null; then push_ok=1; else push_ok=0; fi
   fi
 
   if [ "$push_ok" -eq 1 ]; then
@@ -124,8 +123,10 @@ for target in "${targets[@]}"; do
     # Close any stale resolution PR now superseded by the direct sync.
     num="$(gh pr list --base "$target" --head "$source_branch" --state open \
             --json number --jq '.[0].number // empty' 2>/dev/null || true)"
-    [ -n "$num" ] && gh pr close "$num" \
-      --comment "Superseded by direct sync of ${source_branch} into ${target}." >/dev/null 2>&1 || true
+    if [ -n "$num" ]; then
+      gh pr close "$num" \
+        --comment "Superseded by direct sync of ${source_branch} into ${target}." >/dev/null 2>&1 || true
+    fi
   else
     # Push refused (e.g. branch protection) -> degrade to PR.
     url="$(open_or_reuse_pr "$target")"

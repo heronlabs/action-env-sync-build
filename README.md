@@ -6,6 +6,17 @@
 
 When a PR merges to `main`, this keeps every environment branch (e.g. `staging`, `development`) in sync. Targets are synced independently: one target's conflict never blocks another, and a conflict keeps the run green — the PR is the signal. Branch names are arbitrary (`main`/`staging`/`development`, `master`/`stg`/`dev`, whatever your repo uses).
 
+## Contents
+
+- [Usage](#usage)
+- [Inputs](#inputs)
+- [Outputs](#outputs)
+- [Permissions](#permissions)
+- [Behavior](#behavior)
+- [How it works](#how-it-works)
+- [Notes](#notes)
+- [License](#license)
+
 ## Usage
 
 ```yaml
@@ -22,7 +33,7 @@ jobs:
   sync:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.SYNC_TOKEN }}
@@ -72,6 +83,14 @@ permissions:
 | `source` listed among targets | Skipped. |
 | Clean push after a prior conflict PR | The now-stale PR is closed automatically. |
 | Missing/invalid `target-branches`, unresolvable source, auth failure | Run fails (red). |
+
+## How it works
+
+Composite action with a single shell script (`core/sync-branches.sh`):
+
+1. **Validate inputs** — `target-branches` must be non-empty; `source-branch` defaults to `github.ref_name`.
+2. **Sync each target** — for every target branch, the script merges the source into it. A clean merge is pushed directly; a conflict opens (or reuses) a resolution PR.
+3. **Conflict recovery** — when a prior conflict PR exists and the merge is now clean, the stale PR is closed automatically after the push.
 
 ## Notes
 

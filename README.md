@@ -1,4 +1,4 @@
-# Environment Sync Action
+# 🥁 action-env-sync-build — Synchronize all branches/environments.
 
 [![CI](https://github.com/heronlabs/action-env-sync-build/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/heronlabs/action-env-sync-build/actions/workflows/continuous-integration.yml)
 

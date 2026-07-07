@@ -12,6 +12,7 @@ When a PR merges to `main`, this keeps every environment branch (e.g. `staging`,
 - [Inputs](#inputs)
 - [Outputs](#outputs)
 - [Permissions](#permissions)
+- [Architecture](#architecture)
 - [Behavior](#behavior)
 - [How it works](#how-it-works)
 - [Notes](#notes)
@@ -69,6 +70,22 @@ jobs:
 permissions:
   contents: write
   pull-requests: write
+```
+
+## Architecture
+
+Bash shell script wrapped by a composite GitHub Action.
+
+```
+├── action.yml                    # Composite action definition
+├── core/
+│   └── sync.sh                   # CLI entry point — branch syncing
+├── tests/
+│   ├── __mocks__/
+│   │   └── gh                    # GitHub CLI stub (records invocations)
+│   └── action.bats               # BATS tests
+├── Makefile                      # test (bats) + lint (shellcheck)
+└── version.txt                   # Current version
 ```
 
 ## Behavior

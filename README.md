@@ -12,6 +12,7 @@ When a PR merges to `main`, this keeps every environment branch (e.g. `staging`,
 - [Inputs](#inputs)
 - [Outputs](#outputs)
 - [Permissions](#permissions)
+- [Architecture](#architecture)
 - [Behavior](#behavior)
 - [How it works](#how-it-works)
 - [Notes](#notes)
@@ -69,6 +70,16 @@ jobs:
 permissions:
   contents: write
   pull-requests: write
+```
+
+## Architecture
+
+```mermaid
+graph TD
+    A[action.yml] --> B[core/sync-branches.sh]
+    B --> C[tests/action.bats]
+    C --> D[Makefile]
+    D --> E[version.txt]
 ```
 
 ## Behavior

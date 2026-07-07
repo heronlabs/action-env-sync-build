@@ -1,12 +1,12 @@
 #!/usr/bin/env bats
-# bats tests for core/sync-branches.sh
+# bats tests for core/sync.sh
 #
 # Builds throwaway git repos (a bare "origin" + a working clone), points a `gh` stub
 # at PATH, runs the action script, and asserts on pushed refs / RESULT lines / gh calls.
 # No network, no real GitHub.
 
 setup() {
-  SCRIPT="$BATS_TEST_DIRNAME/../core/sync-branches.sh"
+  SCRIPT="$BATS_TEST_DIRNAME/../core/sync.sh"
   STUB_DIR="$BATS_TEST_DIRNAME/__mocks__"   # contains the `gh` stub
 }
 

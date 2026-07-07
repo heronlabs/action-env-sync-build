@@ -74,12 +74,18 @@ permissions:
 
 ## Architecture
 
-```mermaid
-graph TD
-    A[action.yml] --> B[core/sync-branches.sh]
-    B --> C[tests/action.bats]
-    C --> D[Makefile]
-    D --> E[version.txt]
+Bash shell script wrapped by a composite GitHub Action.
+
+```
+├── action.yml                    # Composite action definition
+├── core/
+│   └── sync.sh                   # CLI entry point — branch syncing
+├── tests/
+│   ├── __mocks__/
+│   │   └── gh                    # GitHub CLI stub (records invocations)
+│   └── action.bats               # BATS tests
+├── Makefile                      # test (bats) + lint (shellcheck)
+└── version.txt                   # Current version
 ```
 
 ## Behavior

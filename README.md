@@ -1,8 +1,10 @@
-# 🥁 action-env-sync-build — Synchronize all branches/environments.
+# 🥁 action-env-sync-build — Sync environment branches
 
-[![CI](https://github.com/heronlabs/action-env-sync-build/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/heronlabs/action-env-sync-build/actions/workflows/continuous-integration.yml)
+[![CI][ci-badge]][ci-url]
+[![License: MIT][license-badge]][license-url]
+[![GitHub Marketplace][marketplace-badge]][marketplace-url]
 
-> Fan a source branch out into long-lived environment branches — push if clean, open a PR if it conflicts.
+> **GitHub Action** to fan a source branch out into long-lived environment branches — push if clean, open a PR if it conflicts.
 
 When a PR merges to `main`, this keeps every environment branch (e.g. `staging`, `development`) in sync. Targets are synced independently: one target's conflict never blocks another, and a conflict keeps the run green — the PR is the signal. Branch names are arbitrary (`main`/`staging`/`development`, `master`/`stg`/`dev`, whatever your repo uses).
 
@@ -118,3 +120,10 @@ Composite action with a single shell script (`core/sync-branches.sh`):
 ## License
 
 MIT
+
+[ci-badge]: https://github.com/heronlabs/action-env-sync-build/actions/workflows/continuous-integration.yml/badge.svg
+[ci-url]: https://github.com/heronlabs/action-env-sync-build/actions/workflows/continuous-integration.yml
+[license-badge]: https://img.shields.io/badge/License-MIT-blue.svg
+[license-url]: ./LICENSE
+[marketplace-badge]: https://img.shields.io/badge/GitHub-Marketplace-green.svg
+[marketplace-url]: https://github.com/marketplace/actions/action-env-sync-build

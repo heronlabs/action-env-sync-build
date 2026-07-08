@@ -1,3 +1,9 @@
+## v3.0.13 (2026-07-08)
+
+### Bug Fixes
+
+* fix: remove unnecessary link from PR conflict message in sync script (652b040f17623654c56e3afdcea62472dc53cc3d)
+
 ## v3.0.12 (2026-07-07)
 
 

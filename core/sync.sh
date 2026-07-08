@@ -70,7 +70,7 @@ open_or_reuse_pr() {
   if [ -z "$url" ]; then
     local body
     # shellcheck disable=SC2016  # backticks/%s are printf format literals, intentional
-    body=$(printf 'Automated environment sync.\n\nMerging `%s` into `%s` conflicts and needs manual resolution. Resolve the conflicts in this PR and merge.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n' \
+    body=$(printf 'Automated environment sync.\n\nMerging `%s` into `%s` conflicts and needs manual resolution. Resolve the conflicts in this PR and merge.' \
             "$source_branch" "$target")
     url="$(gh pr create --base "$target" --head "$source_branch" \
             --title "Sync ${source_branch} → ${target}" --body "$body" 2>/dev/null || true)"

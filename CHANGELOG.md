@@ -1,3 +1,13 @@
+## v6.0.0 (2026-07-09)
+
+### ⚠ BREAKING CHANGES
+
+* feat!: bump major version to v5 (7ef5f958e586375382681e0ee7bbd60b333a68c1)
+
+### Features
+
+* feat!: bump major version to v5 (7ef5f958e586375382681e0ee7bbd60b333a68c1)
+
 ## v3.0.16 (2026-07-09)
 
 

@@ -41,7 +41,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.SYNC_TOKEN }}
 
-      - uses: heronlabs/action-env-sync-build@v3
+      - uses: heronlabs/action-env-sync-build@v4
         with:
           target-branches: |
             staging
@@ -105,7 +105,7 @@ Bash shell script wrapped by a composite GitHub Action.
 
 ## How it works
 
-Composite action with a single shell script (`core/sync-branches.sh`):
+Composite action with a single shell script (`core/sync.sh`):
 
 1. **Validate inputs** — `target-branches` must be non-empty; `source-branch` defaults to `github.ref_name`.
 2. **Sync each target** — for every target branch, the script merges the source into it. A clean merge is pushed directly; a conflict opens (or reuses) a resolution PR.

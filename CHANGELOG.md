@@ -1,3 +1,9 @@
+## v4.0.7 (2026-07-21)
+
+### Miscellaneous Chores
+
+* other: Revert "refactor: bash composite action to Node 20 action (#25)" (#26) (b1805d2abb0e11f461994e4dde8376b79d1e2bae)
+
 ## v4.0.6 (2026-07-21)
 
 

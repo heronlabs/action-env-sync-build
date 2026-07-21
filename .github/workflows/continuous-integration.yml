@@ -13,58 +13,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: 'Install & Build'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@v6
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: '.node-version'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm build
-
-      - name: 'Verify dist is up to date'
-        run: git diff --exit-code dist/
-
   lint:
-    needs: build
-    name: 'Lint'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - name: 'Run shellcheck'
+        shell: bash
+        run: make lint
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: '.node-version'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm lint:check
-
-  unit:
-    needs: build
-    name: 'Unit Tests'
+  test:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: bats-core/bats-action@4.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: '.node-version'
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm test:unit
+      - name: 'Run bats tests'
+        shell: bash
+        run: make test

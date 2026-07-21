@@ -8,26 +8,24 @@
 <!-- /supera:guardrails -->
 
 ## Stack
-- **Runtime**: Node.js 20 (JavaScript GitHub Action), bundled with [@vercel/ncc](https://github.com/vercel/ncc) into `dist/index.js` (committed)
-- **Package manager**: pnpm
-- **Test framework**: [Vitest](https://vitest.dev/) — `tests/unit/action.test.js` (mocked Octokit via dependency injection)
-- **Linter**: [ESLint](https://eslint.org/) flat config — `eslint.config.mjs`
-- **Entry point**: `src/index.js` → `src/action.js` — bundled to `dist/index.js`, run by `action.yml` (`using: node20`)
+- **Runtime**: Bash (composite GitHub Action)
+- **Test framework**: [BATS](https://github.com/bats-core/bats-core) — `tests/action.bats`
+- **Linter**: [shellcheck](https://www.shellcheck.net/) — all shell scripts + test files
+- **Entry point**: `core/sync.sh` — invoked by `action.yml` composite step
 
 ## Commands
 | Command | Description |
 |---------|-------------|
-| `pnpm build` | Bundle `src/` into `dist/index.js` with ncc (dist must be committed) |
-| `pnpm lint:check` | Run ESLint |
-| `pnpm test:unit` | Run Vitest unit tests |
+| `make test` | Run BATS tests |
+| `make lint` | Run shellcheck on all shell scripts |
 
 ## Key files
 | File | Purpose |
 |------|---------|
-| `action.yml` | Action definition (inputs, outputs, node20 runtime) |
-| `src/action.js` | Branch syncing logic (merges API, conflict PRs) |
-| `src/index.js` | ncc entry point — calls `action()` |
-| `dist/index.js` | ncc bundle — committed, executed by the runner |
-| `tests/unit/action.test.js` | Vitest unit tests (injected fake core/github/Octokit) |
+| `action.yml` | Composite action definition (inputs, outputs, steps) |
+| `core/sync.sh` | Branch syncing script |
+| `tests/action.bats` | BATS integration tests |
+| `tests/__mocks__/gh` | GitHub CLI stub (records invocations) |
+| `Makefile` | Test + lint targets |
 | `version.txt` | Current semver version |
 | `CHANGELOG.md` | Release history |

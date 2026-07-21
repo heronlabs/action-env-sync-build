@@ -1,3 +1,9 @@
+## v4.0.5 (2026-07-21)
+
+### Bug Fixes
+
+* fix: skip merge when tree matches target, preventing redundant sync commits (#24) (e81301fcf167f4d2243fdcfe25063c7c35070a93)
+
 ## v4.0.4 (2026-07-17)
 
 

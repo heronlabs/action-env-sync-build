@@ -178,6 +178,34 @@ HOOK
   rm -rf "$root"
 }
 
+@test "tree-equality: skip merge when trees match (squash round-trip)" {
+  local root; root="$(build_repo)"
+  local origin="$root/origin.git" work="$root/work"
+
+  # Create integration at main~1 (behind main), make a change.
+  git -C "$work" checkout -q -b integration "main~1"
+  printf 'int-content\n' >"$work/int.txt"
+  git_q "$work" add -A
+  git_q "$work" commit -m "integration work"
+  git_q "$work" push origin integration
+
+  # Squash merge onto main: create a commit on main with the same tree as integration.
+  local int_tree
+  int_tree="$(git -C "$work" rev-parse 'origin/integration^{tree}')"
+  git -C "$work" checkout -q main
+  local squash_commit
+  squash_commit="$(git -C "$work" commit-tree "$int_tree" -p origin/main -m "Squash integration into main")"
+  git_q "$work" push origin "$squash_commit:refs/heads/main"
+
+  # Sync: source=main, target=integration — trees match, should be no-op.
+  run_action "$work" 'integration'
+
+  [ "$RUN_RC" -eq 0 ]
+  grep -q 'result: integration already' <<<"$RUN_OUT"
+
+  rm -rf "$root"
+}
+
 @test "missing source branch: hard error" {
   local root; root="$(build_repo)"
   local work="$root/work"

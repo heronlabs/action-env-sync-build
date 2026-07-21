@@ -18,9 +18,8 @@ inputs:
     required: true
   github-token:
     description: >-
-      Token with contents:write (push to targets) and pull-requests:write (open PRs).
-      Use a PAT or GitHub App token allowed to push to the protected target branches;
-      pass the same token to actions/checkout so the push is authenticated.
+      Token with contents:write (merge into targets) and pull-requests:write (open PRs).
+      Use a PAT or GitHub App token allowed to update the protected target branches.
     required: true
   merge-message:
     description: Merge-commit subject template; {source} and {target} are substituted
@@ -29,24 +28,12 @@ inputs:
 
 outputs:
   synced:
-    description: Targets cleanly merged and pushed (newline list)
-    value: ${{ steps.sync.outputs.synced }}
+    description: Targets cleanly merged (newline list)
   conflicts:
     description: Targets that received a resolution PR (newline list)
-    value: ${{ steps.sync.outputs.conflicts }}
   pr-urls:
-    description: URLs of opened/updated PRs (newline list)
-    value: ${{ steps.sync.outputs.pr-urls }}
+    description: URLs of opened/reused PRs (newline list)
 
 runs:
-  using: composite
-  steps:
-    - name: 'Sync branches'
-      id: sync
-      shell: bash
-      env:
-        SOURCE_BRANCH: ${{ inputs.source-branch }}
-        TARGET_BRANCHES: ${{ inputs.target-branches }}
-        MERGE_MESSAGE: ${{ inputs.merge-message }}
-        GH_TOKEN: ${{ inputs.github-token }}
-      run: bash ${{ github.action_path }}/core/sync.sh
+  using: node20
+  main: dist/index.js

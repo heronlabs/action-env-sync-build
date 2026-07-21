@@ -4,9 +4,9 @@
 [![License: MIT][license-badge]][license-url]
 [![GitHub Marketplace][marketplace-badge]][marketplace-url]
 
-> **GitHub Action** to fan a source branch out into long-lived environment branches — push if clean, open a PR if it conflicts.
+> **GitHub Action** to fan a source branch out into long-lived environment branches — merge if clean, open a PR if it conflicts.
 
-When a PR merges to `main`, this keeps every environment branch (e.g. `staging`, `development`) in sync. Targets are synced independently: one target's conflict never blocks another, and a conflict keeps the run green — the PR is the signal. Branch names are arbitrary (`main`/`staging`/`development`, `master`/`stg`/`dev`, whatever your repo uses).
+When a PR merges to `main`, this keeps every environment branch (e.g. `staging`, `development`) in sync. Targets are synced independently: one target's conflict never blocks another, and a conflict keeps the run green — the PR is the signal. Branch names are arbitrary (`main`/`staging`/`development`, `master`/`stg`/`dev`, whatever your repo uses). Everything happens through the GitHub API — no checkout required.
 
 ## Contents
 
@@ -36,11 +36,6 @@ jobs:
   sync:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.SYNC_TOKEN }}
-
       - uses: heronlabs/action-env-sync-build@v4
         with:
           target-branches: |
@@ -55,16 +50,16 @@ jobs:
 |---|---|---|---|
 | `source-branch` | Branch to sync from. | No | `${{ github.ref_name }}` |
 | `target-branches` | Newline- or comma-separated list of branches to sync to (e.g. `staging`, `development`). | Yes | — |
-| `github-token` | Token with `contents: write` (push to targets) and `pull-requests: write` (open PRs). Pass the same token to `actions/checkout`. | Yes | — |
+| `github-token` | Token with `contents: write` (merge into targets) and `pull-requests: write` (open PRs). | Yes | — |
 | `merge-message` | Merge-commit subject template; `{source}` and `{target}` are substituted. | No | `Merge {source} into {target}` |
 
 ## Outputs
 
 | Name | Description |
 |---|---|
-| `synced` | Targets cleanly merged and pushed (newline list). |
+| `synced` | Targets cleanly merged (newline list). |
 | `conflicts` | Targets that received a resolution PR (newline list). |
-| `pr-urls` | URLs of opened/updated PRs (newline list). |
+| `pr-urls` | URLs of opened/reused PRs (newline list). |
 
 ## Permissions
 
@@ -76,17 +71,18 @@ permissions:
 
 ## Architecture
 
-Bash shell script wrapped by a composite GitHub Action.
+Node.js 20 GitHub Action bundled with [@vercel/ncc](https://github.com/vercel/ncc).
 
 ```
-├── action.yml                    # Composite action definition
-├── core/
-│   └── sync.sh                   # CLI entry point — branch syncing
+├── action.yml                    # Action definition (node20 runtime)
+├── src/
+│   ├── action.js                 # Branch syncing logic (merges API, conflict PRs)
+│   └── index.js                  # ncc entry point
+├── dist/
+│   └── index.js                  # Committed ncc bundle — what the runner executes
 ├── tests/
-│   ├── __mocks__/
-│   │   └── gh                    # GitHub CLI stub (records invocations)
-│   └── action.bats               # BATS tests
-├── Makefile                      # test (bats) + lint (shellcheck)
+│   └── unit/
+│       └── action.test.js        # Vitest unit tests (mocked Octokit)
 └── version.txt                   # Current version
 ```
 
@@ -94,28 +90,26 @@ Bash shell script wrapped by a composite GitHub Action.
 
 | Situation | Outcome |
 |---|---|
-| Target merges cleanly | Merge commit pushed to target; run green. |
-| Target conflicts | Resolution PR opened (or reused if already open); run green. |
-| Push to target refused | Retried once, then a resolution PR is opened; run green. |
+| Target merges cleanly | Merge commit created on target via the GitHub merges API; run green. |
+| Target conflicts | Resolution PR opened from a `merge/{source}-into-{target}` branch (or reused if already open); run green. |
 | Target already contains source | No-op. |
-| Target branch doesn't exist | Skipped, noted in the job summary; run green. |
+| Target branch doesn't exist | Skipped with a warning; run green. |
 | `source` listed among targets | Skipped. |
-| Clean push after a prior conflict PR | The now-stale PR is closed automatically. |
 | Missing/invalid `target-branches`, unresolvable source, auth failure | Run fails (red). |
 
 ## How it works
 
-Composite action with a single shell script (`core/sync.sh`):
+1. **Validate inputs** — `target-branches` must be non-empty; `source-branch` defaults to `github.ref_name` and must exist.
+2. **Sync each target** — for every target branch, the source is merged into it via `POST /repos/{owner}/{repo}/merges`. `204` means the target already contains the source (no-op); `409` means conflict.
+3. **Conflict → PR** — on conflict, a `merge/{source}-into-{target}` branch is created at the source head (or refreshed with the latest source when it already exists — in-progress resolutions are never force-pushed away), and a PR into the target is opened. An already-open PR for the pair is reused, never duplicated.
 
-1. **Validate inputs** — `target-branches` must be non-empty; `source-branch` defaults to `github.ref_name`.
-2. **Sync each target** — for every target branch, the script merges the source into it. A clean merge is pushed directly; a conflict opens (or reuses) a resolution PR.
-3. **Conflict recovery** — when a prior conflict PR exists and the merge is now clean, the stale PR is closed automatically after the push.
+Every commit merged into the source ends up on each target or is represented by an open conflict PR — a target behind the source with no open PR never persists.
 
 ## Notes
 
-- Requires `fetch-depth: 0` on `actions/checkout`; a shallow clone fails fast with a clear error.
-- The default `GITHUB_TOKEN` is usually blocked by branch protection and won't trigger downstream workflows. Use a PAT or GitHub App token allowed to push to the protected targets, and pass it to **both** `actions/checkout` (`token:`) and this action (`github-token:`): checkout's token authenticates the `git push`, the action's token opens PRs.
-- Conflicts and refused pushes degrade to a resolution PR and keep the run green; only auth/plumbing errors (bad inputs, unresolvable source) fail it.
+- No `actions/checkout` needed — the action talks to the GitHub API only.
+- The default `GITHUB_TOKEN` is usually blocked by branch protection and won't trigger downstream workflows on the target branches. Use a PAT or GitHub App token allowed to update the protected targets.
+- Conflicts degrade to a resolution PR and keep the run green; only auth/plumbing errors (bad inputs, unresolvable source) fail it.
 
 ## License
 

@@ -103,6 +103,12 @@ for target in "${targets[@]}"; do
 
   # Clean -> build merge commit and push.
   tree_oid="$(printf '%s\n' "$tree" | head -n1)"
+
+  # Tree unchanged? Target already has this content — skip.
+  if [ "$tree_oid" = "$(git rev-parse "origin/${target}^{tree}")" ]; then
+    echo "result: $target already"; continue
+  fi
+
   msg="${merge_tmpl//\{source\}/$source_branch}"; msg="${msg//\{target\}/$target}"
   commit="$(git commit-tree "$tree_oid" -p "origin/${target}" -p "origin/${source_branch}" -m "$msg")"
 

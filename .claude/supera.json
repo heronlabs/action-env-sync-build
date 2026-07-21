@@ -1,9 +1,10 @@
 {
   "baseBranch": "main",
   "remote": "origin",
-  "lintCommand": "make lint",
+  "buildCommand": "pnpm build",
+  "lintCommand": "pnpm lint:check",
   "testCommands": {
-    "unit": "make test"
+    "unit": "pnpm test:unit"
   },
   "mergeMethod": "squash"
 }

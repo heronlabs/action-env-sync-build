@@ -90,6 +90,17 @@ for target in "${targets[@]}"; do
     echo "result: $target already"; continue
   fi
 
+  # Target is ancestor of source? Fast-forward (pure ancestor → 0|0 after sync).
+  if git merge-base --is-ancestor "origin/${target}" "origin/${source_branch}" 2>/dev/null; then
+    # Target is pure ancestor — fast-forward it to source tip.
+    # No merge commit needed. Result: 0 ahead, 0 behind.
+    if git push --quiet origin "origin/${source_branch}:refs/heads/${target}" 2>/dev/null; then
+      echo "result: $target synced"; synced+=("$target")
+      continue
+    fi
+    # Push rejected (branch protection, race) → fall through to merge path.
+  fi
+
   # Side-effect-free merge probe.
   if tree="$(git merge-tree --write-tree "origin/${target}" "origin/${source_branch}" 2>/dev/null)"; then mt_rc=0; else mt_rc=$?; fi
 

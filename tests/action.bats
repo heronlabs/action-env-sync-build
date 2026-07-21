@@ -51,6 +51,10 @@ build_repo() {
   git_q "$work" commit -m mainchange
   git_q "$work" push origin main
 
+  # integration: at main~1 (pure ancestor of main — no unique commits)
+  git -C "$work" branch integration main~1
+  git_q "$work" push origin integration
+
   printf '%s' "$root"
 }
 
@@ -194,6 +198,56 @@ HOOK
   run_action "$work" ''
 
   [ "$RUN_RC" -ne 0 ]
+
+  rm -rf "$root"
+}
+
+@test "fast-forward: target behind source gets fast-forwarded" {
+  local root; root="$(build_repo)"
+  local origin="$root/origin.git" work="$root/work"
+  run_action "$work" 'integration'
+
+  [ "$RUN_RC" -eq 0 ]
+  grep -q 'result: integration synced' <<<"$RUN_OUT"
+  # integration should now contain main (fast-forwarded).
+  contains_source "$origin" integration
+  # NOT a merge commit — was fast-forwarded.
+  run ! is_merge_commit "$origin" integration
+
+  rm -rf "$root"
+}
+
+@test "fast-forward push rejected: falls back to pr path" {
+  local root; root="$(build_repo)"
+  local origin="$root/origin.git" work="$root/work"
+  # Reject all pushes to integration.
+  cat >"$origin/hooks/pre-receive" <<'HOOK'
+#!/usr/bin/env bash
+while read -r _old _new ref; do
+  [ "$ref" = "refs/heads/integration" ] && { echo "protected: integration" >&2; exit 1; }
+done
+exit 0
+HOOK
+  chmod +x "$origin/hooks/pre-receive"
+
+  run_action "$work" 'integration'
+  run ! contains_source "$origin" integration
+  grep -Eq 'gh pr create.*--base integration.*--head main|gh pr create.*--head main.*--base integration' "$RUN_GHLOG"
+  grep -q 'result: integration conflict' <<<"$RUN_OUT"
+  [ "$RUN_RC" -eq 0 ]
+
+  rm -rf "$root"
+}
+
+@test "fast-forward then re-sync: already synced (no-op)" {
+  local root; root="$(build_repo)"
+  local work="$root/work"
+  run_action "$work" 'integration'
+  git_q "$work" fetch origin
+  run_action "$work" 'integration'
+
+  grep -q 'result: integration already' <<<"$RUN_OUT"
+  [ "$RUN_RC" -eq 0 ]
 
   rm -rf "$root"
 }
